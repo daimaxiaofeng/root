@@ -1,0 +1,51 @@
+version: '3'
+services:
+  daimaxiaofeng.com:
+    container_name: daimaxiaofeng.com
+    build:
+      context: ./repo/daimaxiaofeng.com
+      dockerfile: Dockerfile
+    image: daimaxiaofeng.com
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./conf/daimaxiaofeng.com/nginx.conf:/etc/nginx/nginx.conf
+      - ./conf/daimaxiaofeng.com/cert:/usr/share/nginx/cert
+    networks:
+      - daimaxiaofeng
+  api-gateway:
+    container_name: api-gateway
+    image: nginx
+    volumes:
+      - ./conf/api-gateway/nginx.conf:/etc/nginx/nginx.conf
+      - ./conf/api-gateway/locations:/etc/nginx/locations
+    networks:
+      - daimaxiaofeng
+  mysql:
+    container_name: mysql
+    image: mysql
+    restart: always
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - daimaxiaofeng
+  user-management:
+    container_name: user-management
+    build:
+      context: ./repo/user-management
+      dockerfile: Dockerfile
+    image: user-management
+    volumes:
+      - ./conf/user-management/db.json:/app/config/db.json
+    networks:
+      - daimaxiaofeng
+    depends_on:
+      - mysql
+
+networks:
+  daimaxiaofeng:
